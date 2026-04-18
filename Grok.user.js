@@ -6,8 +6,6 @@
 // @match        https://grok.com/imagine*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=grok.com
 // @grant        GM_download
-// @updateURL    https://raw.githubusercontent.com/ddtwp9z/grok-downloader/main/Grok.user.js
-// @downloadURL  https://raw.githubusercontent.com/ddtwp9z/grok-downloader/main/Grok.user.js
 // ==/UserScript==
 
 
@@ -147,19 +145,31 @@
         const box = await waitForPromptBox();
         if (!box) throw "Không tìm thấy prompt box";
 
+        // Focus vào box
         box.focus();
-        await sleep(100);
+        await sleep(200);
 
-        // Xóa nội dung cũ
-        box.innerHTML = "<p></p>";
-        box.dispatchEvent(new Event("input", { bubbles: true }));
-        await sleep(100);
+        // Xóa nội dung cũ bằng cách select all và delete
+        document.execCommand('selectAll', false, null);
+        document.execCommand('delete', false, null);
+        await sleep(200);
 
-        // Set nội dung mới
-        box.innerHTML = `<p>${promptText.replace(/\n/g, "<br>")}</p>`;
-        box.dispatchEvent(new Event("input", { bubbles: true }));
+        // Nhập text bằng cách paste hoặc insertText
+        const lines = promptText.split('\n');
+        for (let i = 0; i < lines.length; i++) {
+            document.execCommand('insertText', false, lines[i]);
+            if (i < lines.length - 1) {
+                // Thêm line break nếu không phải dòng cuối
+                document.execCommand('insertLineBreak', false, null);
+            }
+        }
 
-        await sleep(100);
+        // Trigger input event để React nhận biết
+        box.dispatchEvent(new Event('input', { bubbles: true }));
+        box.dispatchEvent(new Event('change', { bubbles: true }));
+
+        await sleep(500);
+        console.log("✅ Đã fill prompt:", promptText.substring(0, 50) + "...");
     }
 
     async function clickCreateVideo(timeout = 10000) {
@@ -176,7 +186,7 @@
             return;
         }
 
-        await sleep(300);
+        await sleep(2000);
     }
 
     throw "❌ Không tìm thấy nút Tạo video hoặc nút bị disabled";
@@ -375,10 +385,13 @@
     }
 
     async function goBackToUpload() {
-        const logo = document.querySelector('a[href="/imagine"]');
-        if (!logo) throw "Không tìm thấy nút Imagine";
-        humanClick(logo);
-        await sleep(1000);
+        const backBtn = document.querySelector('div[aria-label="Quay lại"]') ||
+                       document.querySelector('button[aria-label="Quay lại"]') ||
+                       document.querySelector('a[href="/imagine"]');
+        if (!backBtn) throw "Không tìm thấy nút Quay lại";
+        console.log("🔙 Click nút Quay lại");
+        humanClick(backBtn);
+        await sleep(2500);
     }
 
     async function processOneImage(file) {
@@ -413,7 +426,7 @@
                 throw "❌ Upload thất bại sau 3 lần";
             }
 
-            await sleep(2000);
+            await sleep(3000);
 
             // 2️⃣ fill prompt
             await fillPrompt(promptNow);
@@ -421,20 +434,10 @@
             // 3️⃣ tạo video
             await clickCreateVideo();
 
-            // 4️⃣ đợi video xong
-            await sleep(2000);
-            const moreBtn = await waitTaskReady();
+            // 4️⃣ chờ một chút để video bắt đầu xử lý
+            await sleep(3000);
 
-            // 5️⃣ upscale nếu cần
-            //if (!isVideoAlreadyHD()) {
-            //    humanClick(moreBtn);
-            //    await sleep(800);
-            //    if (await clickUpscaleMenu()) {
-            //        await waitUpscaleFinishedByHD();
-            //    }
-            //}
-
-            // 6️⃣ quay về upload để làm video tiếp
+            // 5️⃣ quay về upload để làm video tiếp
             await goBackToUpload();
             await sleep(1000);
         }
