@@ -1,13 +1,11 @@
 // ==UserScript==
 // @name         Grok - Thời trang
 // @namespace    https://github.com/ddtwp9z/grok-downloader
-// @version      1.0.4
+// @version      1.0.5
 // @description  Auto create multiple videos from one image, upscale to HD and auto rename by image filename
 // @match        https://grok.com/imagine*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=grok.com
 // @grant        GM_download
-// @updateURL    https://raw.githubusercontent.com/ddtwp9z/grok-downloader/main/Grok.user.js
-// @downloadURL  https://raw.githubusercontent.com/ddtwp9z/grok-downloader/main/Grok.user.js
 // ==/UserScript==
 
 
@@ -32,13 +30,11 @@
     };
     // ===== CONFIG =====
     const PROMPT = `
-                Chuyển động camera làm nổi bật tỷ lệ của bộ trang phục trong khi vẫn giữ nguyên góc nhìn qua gương và giữ đúng chi tiết trang phục cô gái đang mặc. Tuyệt đối không được lỗi tay và không được lỗi chân. Lấy lại góc quay toàn cảnh gương mà không thêm bất kì chi tiết trang phục nào ngoài bức ảnh, tạo dáng tự nhiên trong khi cầm điện thoại, điện thoại vẫn luôn che mặt cô gái, tay có một số cử chỉ nhẹ nhàng đáng yêu, thêm một chút chuyển động chậm (slow motion) để tạo nét thanh lịch, tuyệt đối không thay đổi chi tiết trang phục.Người mẫu bước đi chậm rãi, vừa đi vừa phô diễn diện mạo của bộ trang phục đang mặc, không làm thay đổi chi tiết trang phục như trong ảnh mẫu.
+                A 6-second professional product video. The hand gently glides a finger across the back of the phone case to showcase the material. The background and the environment must remain exactly as shown in the original image. The design, patterns, and details on the phone case must stay perfectly static, fixed, and unchanged throughout the movement. Soft cinematic lighting, 4k, smooth hand motion.
 
-                Chuyển động camera làm nổi bật tỷ lệ của bộ trang phục trong khi vẫn giữ nguyên góc nhìn qua gương và giữ đúng chi tiết trang phục cô gái đang mặc. Tuyệt đối không được lỗi tay và không được lỗi chân. Lấy lại góc quay toàn cảnh gương mà không thêm bất kì chi tiết trang phục nào ngoài bức ảnh, tạo dáng tự nhiên trong khi cầm điện thoại, tay cầm điện thoại vẫn luôn che mặt cô gái, tay còn lại có một số cử chỉ như vuốt mái tóc, sau đó đưa tay ra trước bụng một cách thanh lịch, sau đó tay vuốt dọc để xuôi xuống ở tư thế bình thường, thêm một chút chuyển động chậm (slow motion) để tạo nét thanh lịch, tuyệt đối không thay đổi chi tiết trang phục. Tuyệt đối không làm thay đổi chi tiết trang phục như trong ảnh mẫu.
+                A 6-second aesthetic showcase. The hand slowly tilts the phone from side to side to reveal its thickness and edges. The background and overall setting are kept identical to the reference image. Strictly no movement or distortion of the graphics/design on the case. High frame rate, realistic skin texture, professional product cinematography.
 
-                Chuyển động camera làm nổi bật tỷ lệ của bộ trang phục trong khi vẫn giữ nguyên góc nhìn qua gương và giữ đúng chi tiết trang phục cô gái đang mặc. Tuyệt đối không được lỗi tay và không được lỗi chân. Lấy lại góc quay toàn cảnh gương mà không thêm bất kì chi tiết trang phục nào ngoài bức ảnh, tạo dáng tự nhiên trong khi cầm điện thoại, tay cầm điện thoại vẫn luôn che mặt cô gái, đầu cô gái hơi nghiêng nhẹ rồi mỉm cười rồi sau đó cô đứng về tư thế bình thường ngay lập tức, một tay còn lại của cô gái để khoanh tay trước ngực một cách cá tính khoảng 1.5 giây, sau đó đưa tay chống vào hông, giữ nguyên tư thế này đến hết video, thêm một chút chuyển động chậm (slow motion) để tạo nét thanh lịch, tuyệt đối không thay đổi chi tiết trang phục. Tuyệt đối không làm thay đổi chi tiết trang phục như trong ảnh mẫu.
-
-                Chuyển động camera làm nổi bật tỷ lệ của bộ trang phục trong khi vẫn giữ nguyên góc nhìn qua gương và giữ đúng chi tiết trang phục cô gái đang mặc. Tuyệt đối không được lỗi tay và không được lỗi chân. Lấy lại góc quay toàn cảnh gương mà không thêm bất kì chi tiết trang phục nào ngoài bức ảnh, tạo dáng tự nhiên trong khi cầm điện thoại, điện thoại vẫn luôn che mặt cô gái, tay có một số cử chỉ nhẹ nhàng đáng yêu, thêm một chút chuyển động chậm (slow motion) để tạo nét thanh lịch, tuyệt đối không thay đổi chi tiết trang phục.Người mẫu bước đi chậm rãi, vừa đi vừa phô diễn diện mạo của bộ trang phục đang mặc, tuyệt đối chỉ xoay người một cách nhẹ nhàng, tự nhiên, không làm thay đổi chi tiết trang phục như trong ảnh mẫu.
+                A 6-second product advertisement video. The camera slowly zooms in from a medium shot to a close-up on the phone case. Maintain the exact background and atmosphere from the image. The pattern on the phone case must be a fixed print and must not move, change, or warp during the zoom. Smooth camera transition, high-end look, 4k.
                 `;
     function splitPromptList(promptText) {
         return promptText
@@ -56,11 +52,21 @@
     // ===== UTILS =====
     const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-    async function waitForPostPage(timeout = 5000) {
+    async function waitForImageUploaded(timeout = 15000) {
         const start = Date.now();
         while (Date.now() - start < timeout) {
-            if (location.href.includes("/imagine/post/")) return true;
-            await sleep(300);
+            // Kiểm tra nhiều dấu hiệu cho thấy ảnh đã upload xong
+            const settingsBtn = document.querySelector('button[aria-label="Cài đặt"]');
+            const imagePreview = document.querySelector('img[src*="blob:"]') ||
+                               document.querySelector('img[src*="grok.com"]');
+            const postPage = location.href.includes("/imagine/post/") ||
+                           location.href.includes("/imagine/image/");
+
+            if (settingsBtn || imagePreview || postPage) {
+                console.log("✅ Phát hiện ảnh đã upload");
+                return true;
+            }
+            await sleep(500);
         }
         return false;
     }
@@ -86,14 +92,14 @@
         while (Date.now() - start < timeout) {
 
             const editors = document.querySelectorAll(
-                'div[contenteditable="true"].ProseMirror'
+                'div[contenteditable="true"].ProseMirror, div[contenteditable="true"].tiptap'
             );
 
             for (const el of editors) {
                 const placeholder = el.querySelector('[data-placeholder]');
                 if (
                     placeholder &&
-                    placeholder.getAttribute("data-placeholder")?.includes("Gõ để tưởng tượng") &&
+                    placeholder.getAttribute("data-placeholder")?.includes("Nhập để Imagine, @ để tham chiếu hình ảnh") &&
                     el.offsetParent !== null
                 ) {
                     console.log("Tìm thấy prompt box");
@@ -154,16 +160,25 @@
         await sleep(100);
     }
 
-    async function clickCreateVideo() {
+    async function clickCreateVideo(timeout = 10000) {
+    const start = Date.now();
+
+    while (Date.now() - start < timeout) {
         const btn = document.querySelector(
-            'button[aria-label="Tạo video"], button[aria-label="Create video"]'
+            'button[aria-label="Gửi"][type="submit"], button[aria-label="Submit"][type="submit"]'
         );
-        if (!btn || btn.offsetParent === null) {
-            throw "❌ Không tìm thấy nút Tạo video";
+
+        if (btn && btn.offsetParent !== null && !btn.hasAttribute('disabled')) {
+            console.log("Click button Tạo video");
+            humanClick(btn);
+            return;
         }
-        console.log("Click button Tạo video");
-        humanClick(btn);
+
+        await sleep(300);
     }
+
+    throw "❌ Không tìm thấy nút Tạo video hoặc nút bị disabled";
+}
 
     async function clickUpscaleMenu(timeout = 20000) {
         const start = Date.now();
@@ -367,10 +382,10 @@
     async function processOneImage(file) {
         console.log("🖼 Xử lý ảnh:", file.name);
 
-        for (let i = 0; i < VIDEO_COUNT_PER_IMAGE; i++) {
-            console.log(`🎬 Video ${i + 1}/${VIDEO_COUNT_PER_IMAGE} cho ảnh ${file.name}`);
+        for (let i = 0; i < PROMPT_LIST.length; i++) {
+            console.log(`🎬 Video ${i + 1}/${PROMPT_LIST.length} cho ảnh ${file.name}`);
 
-            const promptNow = getPromptForVideo(i);
+            const promptNow = PROMPT_LIST[i];
             console.log("📝 Prompt:", promptNow);
 
             // 1️⃣ upload ảnh
@@ -381,13 +396,13 @@
 
                 await uploadSingleImage(file);
 
-                if (await waitForPostPage(5000)) {
+                if (await waitForImageUploaded()) {
                     uploaded = true;
                     console.log("✅ Upload OK");
                     break;
                 }
 
-                console.warn("⚠ Không vào được post page, thử lại...");
+                console.warn("⚠ Không phát hiện ảnh đã upload, thử lại...");
                 await goBackToUpload();
                 await sleep(1500);
             }
@@ -397,19 +412,18 @@
             }
 
             await sleep(2000);
-            await triggerCreateVideoFromImage();
 
-            // 3️⃣ fill prompt
+            // 2️⃣ fill prompt
             await fillPrompt(promptNow);
 
-            // 4️⃣ tạo video
+            // 3️⃣ tạo video
             await clickCreateVideo();
 
-            // 5️⃣ đợi video xong
+            // 4️⃣ đợi video xong
             await sleep(2000);
             const moreBtn = await waitTaskReady();
 
-            // 6️⃣ upscale nếu cần
+            // 5️⃣ upscale nếu cần
             if (!isVideoAlreadyHD()) {
                 humanClick(moreBtn);
                 await sleep(800);
@@ -418,16 +432,7 @@
                 }
             }
 
-            // 7️⃣ download
-            const videoUrl = getCurrentVideoUrl();
-            console.log("📝 URL:", videoUrl);
-            if (videoUrl) {
-                const filename =
-                    file.name.replace(/\.[^/.]+$/, `_${i + 1}.mp4`);
-                await downloadVideo(videoUrl, filename);
-            }
-
-            // 8️⃣ quay về upload để làm video tiếp
+            // 6️⃣ quay về upload để làm video tiếp
             await goBackToUpload();
             await sleep(1000);
         }
@@ -470,7 +475,3 @@
     document.body.appendChild(btn);
 
 })();
-
-
-
-
