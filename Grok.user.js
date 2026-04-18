@@ -173,24 +173,27 @@
     }
 
     async function clickCreateVideo(timeout = 10000) {
-    const start = Date.now();
+        const start = Date.now();
 
-    while (Date.now() - start < timeout) {
-        const btn = document.querySelector(
-            'button[aria-label="Gửi"][type="submit"], button[aria-label="Submit"][type="submit"]'
-        );
+        while (Date.now() - start < timeout) {
+            const btn = document.querySelector(
+                'button[aria-label="Gửi"][type="submit"], button[aria-label="Submit"][type="submit"]'
+            );
 
-        if (btn && btn.offsetParent !== null && !btn.hasAttribute('disabled')) {
-            console.log("Click button Tạo video");
-            humanClick(btn);
-            return;
+            if (btn && btn.offsetParent !== null && !btn.hasAttribute('disabled')) {
+                // Chờ thêm 1 giây để đảm bảo prompt đã được xử lý hoàn toàn
+                console.log("⏳ Nút Gửi đã enable, chờ thêm 2s để đảm bảo prompt được lưu...");
+                await sleep(2000);
+                console.log("✅ Click button Tạo video");
+                humanClick(btn);
+                return;
+            }
+
+            await sleep(300);
         }
 
-        await sleep(2000);
+        throw "❌ Không tìm thấy nút Tạo video hoặc nút bị disabled";
     }
-
-    throw "❌ Không tìm thấy nút Tạo video hoặc nút bị disabled";
-}
 
     async function clickUpscaleMenu(timeout = 20000) {
         const start = Date.now();
@@ -435,11 +438,10 @@
             await clickCreateVideo();
 
             // 4️⃣ chờ một chút để video bắt đầu xử lý
-            await sleep(3000);
+            await sleep(4000);
 
             // 5️⃣ quay về upload để làm video tiếp
             await goBackToUpload();
-            await sleep(1000);
         }
     }
 
