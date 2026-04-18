@@ -6,6 +6,8 @@
 // @match        https://grok.com/imagine*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=grok.com
 // @grant        GM_download
+// @updateURL    https://raw.githubusercontent.com/ddtwp9z/grok-downloader/main/Grok.user.js
+// @downloadURL  https://raw.githubusercontent.com/ddtwp9z/grok-downloader/main/Grok.user.js
 // ==/UserScript==
 
 
@@ -424,13 +426,13 @@
             const moreBtn = await waitTaskReady();
 
             // 5️⃣ upscale nếu cần
-            if (!isVideoAlreadyHD()) {
-                humanClick(moreBtn);
-                await sleep(800);
-                if (await clickUpscaleMenu()) {
-                    await waitUpscaleFinishedByHD();
-                }
-            }
+            //if (!isVideoAlreadyHD()) {
+            //    humanClick(moreBtn);
+            //    await sleep(800);
+            //    if (await clickUpscaleMenu()) {
+            //        await waitUpscaleFinishedByHD();
+            //    }
+            //}
 
             // 6️⃣ quay về upload để làm video tiếp
             await goBackToUpload();
