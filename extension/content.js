@@ -55,6 +55,237 @@
         }
     });
 
+    // ===== PROGRESS UI =====
+    let progressOverlay = null;
+    let isCancelled = false;
+
+    function createProgressUI() {
+        const overlay = document.createElement('div');
+        overlay.id = 'grok-progress-overlay';
+        overlay.innerHTML = `
+            <div class="progress-container">
+                <div class="progress-header">
+                    <h2>Đang tạo video...</h2>
+                    <button class="cancel-btn" id="cancelBtn">✕ Hủy</button>
+                </div>
+                <div class="progress-info">
+                    <div class="progress-stats">
+                        <span id="currentProgress">0</span> / <span id="totalProgress">0</span> videos
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="progressBar"></div>
+                    </div>
+                    <div class="progress-percentage" id="progressPercentage">0%</div>
+                </div>
+                <div class="progress-details">
+                    <div class="detail-row">
+                        <span class="label">Ảnh hiện tại:</span>
+                        <span class="value" id="currentImage">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Prompt:</span>
+                        <span class="value" id="currentPrompt">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Trạng thái:</span>
+                        <span class="value status" id="currentStatus">Đang khởi động...</span>
+                    </div>
+                </div>
+                <div class="progress-log" id="progressLog"></div>
+            </div>
+        `;
+        
+        const style = document.createElement('style');
+        style.textContent = `
+            #grok-progress-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.85);
+                z-index: 999999;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            }
+            .progress-container {
+                background: white;
+                border-radius: 16px;
+                padding: 30px;
+                width: 600px;
+                max-width: 90vw;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            }
+            .progress-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 25px;
+            }
+            .progress-header h2 {
+                margin: 0;
+                font-size: 24px;
+                color: #333;
+            }
+            .cancel-btn {
+                background: #ff5252;
+                color: white;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 14px;
+                font-weight: 500;
+                transition: background 0.2s;
+            }
+            .cancel-btn:hover {
+                background: #ff1744;
+            }
+            .progress-info {
+                margin-bottom: 25px;
+            }
+            .progress-stats {
+                font-size: 18px;
+                font-weight: 600;
+                color: #00c853;
+                margin-bottom: 12px;
+                text-align: center;
+            }
+            .progress-bar-container {
+                background: #e0e0e0;
+                height: 12px;
+                border-radius: 6px;
+                overflow: hidden;
+                margin-bottom: 8px;
+            }
+            .progress-bar {
+                background: linear-gradient(90deg, #00c853, #00e676);
+                height: 100%;
+                width: 0%;
+                transition: width 0.3s ease;
+                border-radius: 6px;
+            }
+            .progress-percentage {
+                text-align: center;
+                font-size: 14px;
+                color: #666;
+            }
+            .progress-details {
+                background: #f5f5f5;
+                border-radius: 8px;
+                padding: 15px;
+                margin-bottom: 20px;
+            }
+            .detail-row {
+                display: flex;
+                justify-content: space-between;
+                padding: 8px 0;
+                border-bottom: 1px solid #e0e0e0;
+            }
+            .detail-row:last-child {
+                border-bottom: none;
+            }
+            .detail-row .label {
+                color: #888;
+                font-size: 14px;
+            }
+            .detail-row .value {
+                color: #333;
+                font-weight: 500;
+                font-size: 14px;
+                max-width: 400px;
+                text-align: right;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .detail-row .value.status {
+                color: #00c853;
+            }
+            .progress-log {
+                max-height: 150px;
+                overflow-y: auto;
+                background: #fafafa;
+                border-radius: 8px;
+                padding: 12px;
+                font-size: 12px;
+                color: #666;
+                font-family: 'Courier New', monospace;
+            }
+            .log-entry {
+                padding: 4px 0;
+                border-bottom: 1px solid #f0f0f0;
+            }
+            .log-entry:last-child {
+                border-bottom: none;
+            }
+            .log-entry .time {
+                color: #999;
+                margin-right: 8px;
+            }
+        `;
+        
+        document.head.appendChild(style);
+        document.body.appendChild(overlay);
+        
+        document.getElementById('cancelBtn').addEventListener('click', () => {
+            if (confirm('Bạn có chắc muốn hủy quá trình tạo video?')) {
+                isCancelled = true;
+                updateStatus('Đã hủy');
+                addLog('Người dùng đã hủy quá trình');
+            }
+        });
+        
+        return overlay;
+    }
+
+    function updateProgress(current, total) {
+        const percentage = Math.round((current / total) * 100);
+        document.getElementById('currentProgress').textContent = current;
+        document.getElementById('totalProgress').textContent = total;
+        document.getElementById('progressBar').style.width = percentage + '%';
+        document.getElementById('progressPercentage').textContent = percentage + '%';
+    }
+
+    function updateCurrentImage(imageName) {
+        document.getElementById('currentImage').textContent = imageName;
+    }
+
+    function updateCurrentPrompt(prompt) {
+        const shortPrompt = prompt.substring(0, 60) + (prompt.length > 60 ? '...' : '');
+        document.getElementById('currentPrompt').textContent = shortPrompt;
+    }
+
+    function updateStatus(status) {
+        document.getElementById('currentStatus').textContent = status;
+    }
+
+    function addLog(message) {
+        const logContainer = document.getElementById('progressLog');
+        const entry = document.createElement('div');
+        entry.className = 'log-entry';
+        const time = new Date().toLocaleTimeString('vi-VN');
+        entry.innerHTML = `<span class="time">[${time}]</span>${message}`;
+        logContainer.appendChild(entry);
+        logContainer.scrollTop = logContainer.scrollHeight;
+    }
+
+    function showProgressUI() {
+        if (!progressOverlay) {
+            progressOverlay = createProgressUI();
+        }
+        progressOverlay.style.display = 'flex';
+        isCancelled = false;
+    }
+
+    function hideProgressUI() {
+        if (progressOverlay) {
+            progressOverlay.style.display = 'none';
+        }
+    }
+
     // ===== UTILITIES =====
     const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -231,18 +462,35 @@
     }
 
     // ===== MAIN WORKFLOW =====
-    async function processOneImage(file) {
+    async function processOneImage(file, imageIndex, totalImages, promptList) {
         console.log('🖼 Xử lý ảnh:', file.name);
-        const PROMPT_LIST = splitPromptList(CONFIG.PROMPTS);
+        updateCurrentImage(`${imageIndex}/${totalImages}: ${file.name}`);
+        addLog(`Bắt đầu xử lý ảnh: ${file.name}`);
 
-        for (let i = 0; i < PROMPT_LIST.length; i++) {
-            console.log(`🎬 Video ${i + 1}/${PROMPT_LIST.length} cho ảnh ${file.name}`);
+        for (let i = 0; i < promptList.length; i++) {
+            if (isCancelled) {
+                addLog('Đã dừng do người dùng hủy');
+                throw 'CANCELLED';
+            }
 
-            const promptNow = PROMPT_LIST[i];
+            const videoNumber = (imageIndex - 1) * promptList.length + i + 1;
+            const totalVideos = totalImages * promptList.length;
+            
+            console.log(`🎬 Video ${videoNumber}/${totalVideos} cho ảnh ${file.name}`);
+            updateProgress(videoNumber - 1, totalVideos);
+
+            const promptNow = promptList[i];
             console.log('📝 Prompt:', promptNow);
+            updateCurrentPrompt(promptNow);
 
+            // Upload
+            updateStatus('Đang upload ảnh...');
+            addLog(`Upload ảnh (lần thử 1/${CONFIG.UPLOAD_RETRY})`);
+            
             let uploaded = false;
             for (let retry = 1; retry <= CONFIG.UPLOAD_RETRY; retry++) {
+                if (isCancelled) throw 'CANCELLED';
+                
                 console.log(`🔁 Upload thử lần ${retry}:`, file.name);
 
                 await uploadSingleImage(file);
@@ -250,22 +498,40 @@
                 if (await waitForImageUploaded()) {
                     uploaded = true;
                     console.log('✅ Upload OK');
+                    addLog('Upload thành công');
                     break;
                 }
 
                 console.warn('⚠ Không phát hiện ảnh đã upload, thử lại...');
+                addLog(`Upload thất bại, thử lại (${retry}/${CONFIG.UPLOAD_RETRY})`);
                 await goBackToUpload();
                 await sleep(CONFIG.DELAYS.MEDIUM * 2);
             }
 
             if (!uploaded) {
+                addLog('❌ Upload thất bại sau 3 lần thử');
                 throw '❌ Upload thất bại sau 3 lần';
             }
 
             await sleep(CONFIG.DELAYS.AFTER_UPLOAD);
+            
+            // Fill prompt
+            updateStatus('Đang điền prompt...');
+            addLog('Điền prompt vào form');
             await fillPrompt(promptNow);
+            
+            // Create video
+            updateStatus('Đang tạo video...');
+            addLog('Click nút tạo video');
             await clickCreateVideo();
+            
+            updateProgress(videoNumber, totalVideos);
+            addLog(`✅ Hoàn thành video ${videoNumber}/${totalVideos}`);
+            
             await sleep(CONFIG.DELAYS.AFTER_UPLOAD + 1000);
+            
+            // Go back
+            updateStatus('Quay lại trang upload...');
             await goBackToUpload();
         }
     }
@@ -274,15 +540,49 @@
         const images = await selectMultipleImages();
         if (!images.length) return alert('❌ Không có ảnh');
 
+        const PROMPT_LIST = splitPromptList(CONFIG.PROMPTS);
+        const totalVideos = images.length * PROMPT_LIST.length;
+        
+        showProgressUI();
+        updateProgress(0, totalVideos);
+        addLog(`Bắt đầu tạo ${totalVideos} videos từ ${images.length} ảnh`);
+        addLog(`Mỗi ảnh sẽ tạo ${PROMPT_LIST.length} videos`);
+
+        let completedVideos = 0;
+        let hasError = false;
+
         for (let i = 0; i < images.length; i++) {
+            if (isCancelled) {
+                addLog('Quá trình đã bị hủy bởi người dùng');
+                break;
+            }
+
             try {
-                await processOneImage(images[i]);
+                await processOneImage(images[i], i + 1, images.length, PROMPT_LIST);
+                completedVideos += PROMPT_LIST.length;
             } catch (e) {
+                if (e === 'CANCELLED') {
+                    break;
+                }
                 console.error('❌ Lỗi ảnh:', e);
+                addLog(`❌ Lỗi khi xử lý ảnh ${images[i].name}: ${e}`);
+                hasError = true;
             }
         }
 
-        alert('🎉 DONE');
+        updateStatus('Hoàn thành!');
+        addLog(`Đã tạo xong ${completedVideos}/${totalVideos} videos`);
+        
+        setTimeout(() => {
+            hideProgressUI();
+            if (isCancelled) {
+                alert(`Đã hủy. Tạo được ${completedVideos}/${totalVideos} videos`);
+            } else if (hasError) {
+                alert(`Hoàn thành với lỗi. Tạo được ${completedVideos}/${totalVideos} videos`);
+            } else {
+                alert('🎉 Hoàn thành tất cả videos!');
+            }
+        }, 2000);
     }
 
     // ===== UI BUTTON =====
