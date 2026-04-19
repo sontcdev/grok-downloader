@@ -1,19 +1,8 @@
-// ==UserScript==
-// @name         Grok - Thời trang
-// @namespace    https://github.com/ddtwp9z/grok-downloader
-// @version      1.1.1
-// @description  Auto create multiple videos from one image, upscale to HD and auto rename by image filename
-// @match        https://grok.com/imagine*
-// @icon         https://www.google.com/s2/favicons?sz=64&domain=grok.com
-// @grant        GM_download
-// ==/UserScript==
-
 (function () {
     'use strict';
 
     // ===== CONFIGURATION =====
-    // Chọn tốc độ phù hợp với máy: 'FAST' (máy mạnh), 'NORMAL' (máy trung bình), 'SLOW' (máy yếu)
-    const SPEED_MODE = 'SLOW';
+    let SPEED_MODE = 'NORMAL'; // Sẽ được load từ chrome.storage
     
     const SPEED_PROFILES = {
         FAST: {
@@ -30,7 +19,7 @@
         }
     };
 
-    const CONFIG = {
+    let CONFIG = {
         PROMPTS: `
             A 6-second professional product video. The hand gently glides a finger across the back of the phone case to showcase the material. The background and the environment must remain exactly as shown in the original image. The design, patterns, and details on the phone case must stay perfectly static, fixed, and unchanged throughout the movement. Soft cinematic lighting, 4k, smooth hand motion.
 
@@ -42,6 +31,30 @@
         UPLOAD_RETRY: 3
     };
 
+    // Load settings from storage
+    chrome.storage.sync.get(['speedMode', 'customPrompts'], (result) => {
+        if (result.speedMode) {
+            SPEED_MODE = result.speedMode;
+            Object.assign(CONFIG, SPEED_PROFILES[SPEED_MODE]);
+        }
+        if (result.customPrompts) {
+            CONFIG.PROMPTS = result.customPrompts;
+        }
+    });
+
+    // Listen for settings changes
+    chrome.storage.onChanged.addListener((changes) => {
+        if (changes.speedMode) {
+            SPEED_MODE = changes.speedMode.newValue;
+            Object.assign(CONFIG, SPEED_PROFILES[SPEED_MODE]);
+            console.log('🔄 Đã cập nhật tốc độ:', SPEED_MODE);
+        }
+        if (changes.customPrompts) {
+            CONFIG.PROMPTS = changes.customPrompts.newValue;
+            console.log('🔄 Đã cập nhật prompts');
+        }
+    });
+
     // ===== UTILITIES =====
     const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -51,8 +64,6 @@
             .map(p => p.trim())
             .filter(Boolean);
     }
-
-    const PROMPT_LIST = splitPromptList(CONFIG.PROMPTS);
 
     function humanClick(el) {
         if (!el) return;
@@ -81,16 +92,7 @@
         }
     });
 
-    const stopAllVideos = () => {
-        document.querySelectorAll('video').forEach(v => {
-            try {
-                v.pause();
-                v.removeAttribute('autoplay');
-            } catch (_) { }
-        });
-    };
-
-    // ===== IMAGE UPLOAD (GIỮ NGUYÊN LOGIC GỐC) =====
+    // ===== IMAGE UPLOAD =====
     async function waitForImageUploaded(timeout = CONFIG.TIMEOUTS.IMAGE_UPLOAD) {
         const start = Date.now();
         while (Date.now() - start < timeout) {
@@ -134,7 +136,7 @@
         });
     }
 
-    // ===== PROMPT HANDLING (GIỮ NGUYÊN LOGIC GỐC) =====
+    // ===== PROMPT HANDLING =====
     async function waitForPromptBox(timeout = CONFIG.TIMEOUTS.PROMPT_BOX) {
         console.log('waitForPromptBox');
         const start = Date.now();
@@ -181,23 +183,20 @@
             }
         }
 
-        // Dispatch nhiều events để đảm bảo React nhận diện
         box.dispatchEvent(new Event('input', { bubbles: true }));
         box.dispatchEvent(new Event('change', { bubbles: true }));
         box.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText' }));
         
-        // Blur và focus lại để trigger validation
         box.blur();
         await sleep(CONFIG.DELAYS.SHORT);
         box.focus();
         await sleep(CONFIG.DELAYS.SHORT);
 
-        // Chờ lâu hơn để React state update (sử dụng delay riêng cho máy yếu)
         await sleep(CONFIG.DELAYS.AFTER_FILL_PROMPT);
         console.log('✅ Đã fill prompt:', promptText.substring(0, 50) + '...');
     }
 
-    // ===== VIDEO CREATION (GIỮ NGUYÊN LOGIC GỐC) =====
+    // ===== VIDEO CREATION =====
     async function clickCreateVideo(timeout = CONFIG.TIMEOUTS.CREATE_BUTTON) {
         const start = Date.now();
 
@@ -207,7 +206,7 @@
             );
 
             if (btn && btn.offsetParent !== null && !btn.hasAttribute('disabled')) {
-                console.log('⏳ Nút Gửi đã enable, chờ thêm 2s để đảm bảo prompt được lưu...');
+                console.log('⏳ Nút Gửi đã enable, chờ thêm để đảm bảo prompt được lưu...');
                 await sleep(CONFIG.DELAYS.BEFORE_CREATE);
                 console.log('✅ Click button Tạo video');
                 humanClick(btn);
@@ -220,7 +219,7 @@
         throw '❌ Không tìm thấy nút Tạo video hoặc nút bị disabled';
     }
 
-    // ===== NAVIGATION (GIỮ NGUYÊN LOGIC GỐC) =====
+    // ===== NAVIGATION =====
     async function goBackToUpload() {
         const backBtn = document.querySelector('div[aria-label="Quay lại"]') ||
                        document.querySelector('button[aria-label="Quay lại"]') ||
@@ -234,6 +233,7 @@
     // ===== MAIN WORKFLOW =====
     async function processOneImage(file) {
         console.log('🖼 Xử lý ảnh:', file.name);
+        const PROMPT_LIST = splitPromptList(CONFIG.PROMPTS);
 
         for (let i = 0; i < PROMPT_LIST.length; i++) {
             console.log(`🎬 Video ${i + 1}/${PROMPT_LIST.length} cho ảnh ${file.name}`);
@@ -241,7 +241,6 @@
             const promptNow = PROMPT_LIST[i];
             console.log('📝 Prompt:', promptNow);
 
-            // 1. Upload ảnh
             let uploaded = false;
             for (let retry = 1; retry <= CONFIG.UPLOAD_RETRY; retry++) {
                 console.log(`🔁 Upload thử lần ${retry}:`, file.name);
@@ -264,17 +263,9 @@
             }
 
             await sleep(CONFIG.DELAYS.AFTER_UPLOAD);
-
-            // 2. Fill prompt
             await fillPrompt(promptNow);
-
-            // 3. Tạo video
             await clickCreateVideo();
-
-            // 4. Chờ một chút để video bắt đầu xử lý
             await sleep(CONFIG.DELAYS.AFTER_UPLOAD + 1000);
-
-            // 5. Quay về upload để làm video tiếp
             await goBackToUpload();
         }
     }

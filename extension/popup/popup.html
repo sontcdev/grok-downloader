@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grok Video Creator</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Grok Video Creator</h1>
+        
+        <div class="section">
+            <label for="speedMode">Tốc độ xử lý:</label>
+            <select id="speedMode">
+                <option value="FAST">Nhanh (máy mạnh)</option>
+                <option value="NORMAL" selected>Trung bình (máy thường)</option>
+                <option value="SLOW">Chậm (máy yếu)</option>
+            </select>
+            <p class="hint">Chọn tốc độ phù hợp với cấu hình máy của bạn</p>
+        </div>
+
+        <div class="section">
+            <label for="prompts">Danh sách Prompts:</label>
+            <textarea id="prompts" rows="12" placeholder="Nhập các prompt, cách nhau bởi dòng trống..."></textarea>
+            <p class="hint">Mỗi prompt cách nhau bởi một dòng trống. Extension sẽ tạo 1 video cho mỗi prompt.</p>
+        </div>
+
+        <div class="actions">
+            <button id="save" class="btn-primary">Lưu cài đặt</button>
+            <button id="reset" class="btn-secondary">Khôi phục mặc định</button>
+        </div>
+
+        <div id="status" class="status"></div>
+
+        <div class="info">
+            <h3>Hướng dẫn sử dụng:</h3>
+            <ol>
+                <li>Truy cập <a href="https://grok.com/imagine" target="_blank">grok.com/imagine</a></li>
+                <li>Click nút "▶ Start" ở góc dưới bên phải</li>
+                <li>Chọn ảnh muốn tạo video</li>
+                <li>Extension sẽ tự động tạo video với các prompt đã cấu hình</li>
+            </ol>
+        </div>
+    </div>
+    <script src="popup.js"></script>
+</body>
+</html>
