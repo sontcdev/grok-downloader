@@ -9,6 +9,7 @@ Extension tự động tạo nhiều video từ một ảnh trên Grok.com với
 - Tùy chỉnh danh sách prompts
 - Xử lý nhiều ảnh cùng lúc
 - Retry tự động khi upload thất bại
+- **Tự động kiểm tra và thông báo phiên bản mới**
 
 ## Cài đặt
 
@@ -48,6 +49,14 @@ Hoặc mở file `extension/icons/create-icons.html` trong trình duyệt để 
 
 Click vào icon extension trên thanh công cụ để:
 
+### Kiểm tra cập nhật
+
+Extension tự động kiểm tra phiên bản mới mỗi 24 giờ. Khi có bản cập nhật:
+- Badge "NEW" hiển thị trên icon extension
+- Thông báo xuất hiện trong popup với changelog
+- Click "Tải về" để download phiên bản mới từ GitHub
+- Hoặc click "Kiểm tra cập nhật" để kiểm tra thủ công
+
 ### Chọn tốc độ xử lý
 
 - **Nhanh**: Máy mạnh, xử lý nhanh
@@ -82,6 +91,8 @@ A 6-second product advertisement video...
 extension/
 ├── manifest.json          # Cấu hình extension
 ├── content.js            # Script chạy trên grok.com
+├── background.js         # Service worker kiểm tra cập nhật
+├── version.json          # Thông tin phiên bản mới nhất
 ├── popup/
 │   ├── popup.html        # Giao diện cấu hình
 │   ├── popup.css         # Style
@@ -109,6 +120,13 @@ extension/
 - Thử upload thủ công để đảm bảo Grok.com hoạt động bình thường
 
 ## Phát triển
+
+### Phát hành phiên bản mới
+
+1. Cập nhật version trong `manifest.json`
+2. Cập nhật `version.json` với version mới và changelog
+3. Commit và push lên GitHub
+4. Extension sẽ tự động thông báo cho users trong vòng 24 giờ
 
 ### Chỉnh sửa code
 

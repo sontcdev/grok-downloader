@@ -10,6 +10,18 @@
     <div class="container">
         <h1>Grok Video Creator</h1>
         
+        <div id="updateNotification" class="update-notification" style="display: none;">
+            <div class="update-content">
+                <strong>Có phiên bản mới!</strong>
+                <p class="update-version"></p>
+                <div class="update-changelog"></div>
+                <div class="update-actions">
+                    <button id="downloadUpdate" class="btn-primary btn-small">Tải về</button>
+                    <button id="dismissUpdate" class="btn-secondary btn-small">Bỏ qua</button>
+                </div>
+            </div>
+        </div>
+        
         <div class="section">
             <label for="speedMode">Tốc độ xử lý:</label>
             <select id="speedMode">
@@ -29,6 +41,11 @@
         <div class="actions">
             <button id="save" class="btn-primary">Lưu cài đặt</button>
             <button id="reset" class="btn-secondary">Khôi phục mặc định</button>
+        </div>
+        
+        <div class="version-info">
+            <span id="currentVersion">v1.0.0</span>
+            <button id="checkUpdate" class="btn-link">Kiểm tra cập nhật</button>
         </div>
 
         <div id="status" class="status"></div>

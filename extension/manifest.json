@@ -5,13 +5,18 @@
   "description": "Tự động tạo nhiều video từ một ảnh trên Grok.com với các prompt khác nhau",
   "permissions": [
     "storage",
-    "activeTab"
+    "activeTab",
+    "alarms"
   ],
   "host_permissions": [
-    "https://grok.com/*"
+    "https://grok.com/*",
+    "https://raw.githubusercontent.com/*"
   ],
   "action": {
     "default_popup": "popup/popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
   },
   "content_scripts": [
     {

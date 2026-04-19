@@ -4,6 +4,13 @@ A 6-second aesthetic showcase. The hand slowly tilts the phone from side to side
 
 A 6-second product advertisement video. The camera slowly zooms in from a medium shot to a close-up on the phone case. Maintain the exact background and atmosphere from the image. The pattern on the phone case must be a fixed print and must not move, change, or warp during the zoom. Smooth camera transition, high-end look, 4k.`;
 
+// Display current version
+const manifest = chrome.runtime.getManifest();
+document.getElementById('currentVersion').textContent = `v${manifest.version}`;
+
+// Check for updates on popup open
+checkForUpdateNotification();
+
 // Load saved settings
 chrome.storage.sync.get(['speedMode', 'customPrompts'], (result) => {
     document.getElementById('speedMode').value = result.speedMode || 'NORMAL';
@@ -39,6 +46,67 @@ document.getElementById('reset').addEventListener('click', () => {
         });
     }
 });
+
+// Check update button
+document.getElementById('checkUpdate').addEventListener('click', () => {
+    document.getElementById('checkUpdate').textContent = 'Đang kiểm tra...';
+    document.getElementById('checkUpdate').disabled = true;
+    
+    chrome.runtime.sendMessage({ action: 'checkUpdate' }, (response) => {
+        document.getElementById('checkUpdate').textContent = 'Kiểm tra cập nhật';
+        document.getElementById('checkUpdate').disabled = false;
+        
+        if (response && response.available) {
+            showUpdateNotification(response);
+        } else if (response && response.error) {
+            showStatus('Lỗi khi kiểm tra cập nhật: ' + response.error, 'error');
+        } else {
+            showStatus('Bạn đang sử dụng phiên bản mới nhất', 'success');
+        }
+    });
+});
+
+// Download update button
+document.getElementById('downloadUpdate').addEventListener('click', () => {
+    chrome.storage.local.get(['latestVersion'], (result) => {
+        if (result.latestVersion && result.latestVersion.download_url) {
+            chrome.tabs.create({ url: result.latestVersion.download_url });
+        }
+    });
+});
+
+// Dismiss update button
+document.getElementById('dismissUpdate').addEventListener('click', () => {
+    document.getElementById('updateNotification').style.display = 'none';
+    chrome.storage.local.set({ updateDismissed: true });
+});
+
+function checkForUpdateNotification() {
+    chrome.storage.local.get(['updateAvailable', 'latestVersion', 'updateDismissed'], (result) => {
+        if (result.updateAvailable && !result.updateDismissed && result.latestVersion) {
+            showUpdateNotification(result.latestVersion);
+        }
+    });
+}
+
+function showUpdateNotification(versionInfo) {
+    const notification = document.getElementById('updateNotification');
+    const versionEl = notification.querySelector('.update-version');
+    const changelogEl = notification.querySelector('.update-changelog');
+    
+    versionEl.textContent = `Phiên bản ${versionInfo.version} đã có sẵn`;
+    
+    if (versionInfo.changelog && versionInfo.changelog.length > 0) {
+        changelogEl.innerHTML = '<strong>Có gì mới:</strong><ul>' + 
+            versionInfo.changelog.map(item => `<li>${item}</li>`).join('') + 
+            '</ul>';
+    } else {
+        changelogEl.innerHTML = '';
+    }
+    
+    notification.style.display = 'block';
+    chrome.storage.local.set({ updateDismissed: false });
+}
 
 function showStatus(message, type) {
     const status = document.getElementById('status');
