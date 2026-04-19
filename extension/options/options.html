@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grok Video Creator - Cài đặt</title>
+    <link rel="stylesheet" href="options.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Grok Video Creator</h1>
+            <p class="subtitle">Cấu hình tự động tạo video</p>
+        </header>
+
+        <div id="updateNotification" class="update-notification" style="display: none;">
+            <div class="update-content">
+                <strong>Có phiên bản mới!</strong>
+                <p class="update-version"></p>
+                <div class="update-changelog"></div>
+                <div class="update-actions">
+                    <button id="downloadUpdate" class="btn-primary btn-small">Tải về</button>
+                    <button id="dismissUpdate" class="btn-secondary btn-small">Bỏ qua</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="sidebar">
+                <nav>
+                    <a href="#general" class="nav-item active" data-tab="general">
+                        <span class="icon">⚙️</span>
+                        Cài đặt chung
+                    </a>
+                    <a href="#prompts" class="nav-item" data-tab="prompts">
+                        <span class="icon">📝</span>
+                        Quản lý Prompts
+                    </a>
+                    <a href="#about" class="nav-item" data-tab="about">
+                        <span class="icon">ℹ️</span>
+                        Thông tin
+                    </a>
+                </nav>
+            </div>
+
+            <div class="main">
+                <!-- General Settings Tab -->
+                <div id="general" class="tab-content active">
+                    <h2>Cài đặt chung</h2>
+                    
+                    <div class="section">
+                        <label for="speedMode">Tốc độ xử lý:</label>
+                        <select id="speedMode" class="input-large">
+                            <option value="FAST">Nhanh (máy mạnh)</option>
+                            <option value="NORMAL" selected>Trung bình (máy thường)</option>
+                            <option value="SLOW">Chậm (máy yếu)</option>
+                        </select>
+                        <p class="hint">Chọn tốc độ phù hợp với cấu hình máy của bạn. Máy yếu nên chọn "Chậm" để tránh lỗi.</p>
+                    </div>
+
+                    <div class="section">
+                        <h3>Thông tin hiệu suất</h3>
+                        <div class="info-grid">
+                            <div class="info-card">
+                                <div class="info-label">Chế độ hiện tại</div>
+                                <div class="info-value" id="currentMode">Trung bình</div>
+                            </div>
+                            <div class="info-card">
+                                <div class="info-label">Timeout upload</div>
+                                <div class="info-value" id="uploadTimeout">25s</div>
+                            </div>
+                            <div class="info-card">
+                                <div class="info-label">Delay sau upload</div>
+                                <div class="info-value" id="afterUploadDelay">5s</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Prompts Tab -->
+                <div id="prompts" class="tab-content">
+                    <h2>Quản lý Prompts</h2>
+                    
+                    <div class="section">
+                        <label for="promptsTextarea">Danh sách Prompts:</label>
+                        <textarea id="promptsTextarea" rows="20" placeholder="Nhập các prompt, cách nhau bởi dòng trống..."></textarea>
+                        <p class="hint">
+                            Mỗi prompt cách nhau bởi một dòng trống. Extension sẽ tạo 1 video cho mỗi prompt.<br>
+                            Ví dụ: Nếu bạn có 3 prompts và chọn 2 ảnh, sẽ tạo ra 6 videos (3 prompts × 2 ảnh).
+                        </p>
+                    </div>
+
+                    <div class="section">
+                        <h3>Số lượng prompts: <span id="promptCount">0</span></h3>
+                        <button id="previewPrompts" class="btn-secondary">Xem trước prompts</button>
+                    </div>
+
+                    <div id="promptPreview" class="prompt-preview" style="display: none;">
+                        <h4>Danh sách prompts sẽ được sử dụng:</h4>
+                        <ol id="promptList"></ol>
+                    </div>
+                </div>
+
+                <!-- About Tab -->
+                <div id="about" class="tab-content">
+                    <h2>Thông tin Extension</h2>
+                    
+                    <div class="section">
+                        <div class="about-info">
+                            <p><strong>Phiên bản:</strong> <span id="currentVersion">1.0.0</span></p>
+                            <p><strong>Tác giả:</strong> sontcdev</p>
+                            <p><strong>Repository:</strong> <a href="https://github.com/sontcdev/grok-downloader" target="_blank">github.com/sontcdev/grok-downloader</a></p>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <h3>Hướng dẫn sử dụng</h3>
+                        <ol class="guide-list">
+                            <li>Truy cập <a href="https://grok.com/imagine" target="_blank">grok.com/imagine</a></li>
+                            <li>Click nút "▶ Start" ở góc dưới bên phải</li>
+                            <li>Chọn ảnh muốn tạo video</li>
+                            <li>Extension sẽ tự động tạo video với các prompt đã cấu hình</li>
+                        </ol>
+                    </div>
+
+                    <div class="section">
+                        <h3>Kiểm tra cập nhật</h3>
+                        <p>Extension tự động kiểm tra phiên bản mới mỗi 24 giờ.</p>
+                        <button id="checkUpdate" class="btn-secondary">Kiểm tra ngay</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <div class="footer-actions">
+                <button id="save" class="btn-primary">Lưu cài đặt</button>
+                <button id="reset" class="btn-secondary">Khôi phục mặc định</button>
+            </div>
+            <div id="status" class="status"></div>
+        </footer>
+    </div>
+    <script src="options.js"></script>
+</body>
+</html>

@@ -14,49 +14,41 @@
             <div class="update-content">
                 <strong>Có phiên bản mới!</strong>
                 <p class="update-version"></p>
-                <div class="update-changelog"></div>
                 <div class="update-actions">
                     <button id="downloadUpdate" class="btn-primary btn-small">Tải về</button>
                     <button id="dismissUpdate" class="btn-secondary btn-small">Bỏ qua</button>
                 </div>
             </div>
         </div>
-        
-        <div class="section">
-            <label for="speedMode">Tốc độ xử lý:</label>
-            <select id="speedMode">
-                <option value="FAST">Nhanh (máy mạnh)</option>
-                <option value="NORMAL" selected>Trung bình (máy thường)</option>
-                <option value="SLOW">Chậm (máy yếu)</option>
-            </select>
-            <p class="hint">Chọn tốc độ phù hợp với cấu hình máy của bạn</p>
-        </div>
 
-        <div class="section">
-            <label for="prompts">Danh sách Prompts:</label>
-            <textarea id="prompts" rows="12" placeholder="Nhập các prompt, cách nhau bởi dòng trống..."></textarea>
-            <p class="hint">Mỗi prompt cách nhau bởi một dòng trống. Extension sẽ tạo 1 video cho mỗi prompt.</p>
+        <div class="quick-info">
+            <div class="info-row">
+                <span class="label">Tốc độ:</span>
+                <span class="value" id="speedModeDisplay">Trung bình</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Số prompts:</span>
+                <span class="value" id="promptCountDisplay">3</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Phiên bản:</span>
+                <span class="value" id="currentVersion">v1.0.0</span>
+            </div>
         </div>
 
         <div class="actions">
-            <button id="save" class="btn-primary">Lưu cài đặt</button>
-            <button id="reset" class="btn-secondary">Khôi phục mặc định</button>
+            <button id="openSettings" class="btn-primary btn-large">
+                <span class="icon">⚙️</span>
+                Mở cài đặt
+            </button>
         </div>
-        
-        <div class="version-info">
-            <span id="currentVersion">v1.0.0</span>
-            <button id="checkUpdate" class="btn-link">Kiểm tra cập nhật</button>
-        </div>
-
-        <div id="status" class="status"></div>
 
         <div class="info">
-            <h3>Hướng dẫn sử dụng:</h3>
+            <h3>Hướng dẫn nhanh:</h3>
             <ol>
                 <li>Truy cập <a href="https://grok.com/imagine" target="_blank">grok.com/imagine</a></li>
-                <li>Click nút "▶ Start" ở góc dưới bên phải</li>
-                <li>Chọn ảnh muốn tạo video</li>
-                <li>Extension sẽ tự động tạo video với các prompt đã cấu hình</li>
+                <li>Click nút "▶ Start" ở góc dưới phải</li>
+                <li>Chọn ảnh và extension sẽ tự động tạo video</li>
             </ol>
         </div>
     </div>
