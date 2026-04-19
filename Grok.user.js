@@ -1,126 +1,98 @@
 // ==UserScript==
 // @name         Grok - Thời trang
-// @namespace    https://github.com/ddtwp9z/grok-downloader
-// @version      1.0.4
-// @description  Auto create multiple videos from one image, upscale to HD and auto rename by image filename
+// @namespace    https://github.com/sontcdev/grok-downloader
+// @version      2.4.0
+// @description  Auto create multiple product videos from phone case images with detailed logging
 // @match        https://grok.com/imagine*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=grok.com
-// @grant        GM_download
-// @updateURL    https://raw.githubusercontent.com/ddtwp9z/grok-downloader/main/Grok.user.js
-// @downloadURL  https://raw.githubusercontent.com/ddtwp9z/grok-downloader/main/Grok.user.js
+// @grant        none
+// @updateURL    https://raw.githubusercontent.com/sontcdev/grok-downloader/main/Grok.user.js
+// @downloadURL  https://raw.githubusercontent.com/sontcdev/grok-downloader/main/Grok.user.js
 // ==/UserScript==
 
 
 (function () {
     'use strict';
-    // 1️⃣ SILENCE AbortError (media bị unmount khi React rerender)
+    
+    // ===== ERROR HANDLING =====
     window.addEventListener("unhandledrejection", e => {
         if (e.reason?.name === "AbortError") {
             e.preventDefault();
-            return;
         }
     });
-
-    // 2️⃣ Chặn video tự play lại khi DOM sắp bị remove
-    const stopAllVideos = () => {
-        document.querySelectorAll("video").forEach(v => {
-            try {
-                v.pause();
-                v.removeAttribute("autoplay");
-            } catch (_) { }
-        });
-    };
+    
     // ===== CONFIG =====
     const PROMPT = `
-                Chuyển động camera làm nổi bật tỷ lệ của bộ trang phục trong khi vẫn giữ nguyên góc nhìn qua gương và giữ đúng chi tiết trang phục cô gái đang mặc. Tuyệt đối không được lỗi tay và không được lỗi chân. Lấy lại góc quay toàn cảnh gương mà không thêm bất kì chi tiết trang phục nào ngoài bức ảnh, tạo dáng tự nhiên trong khi cầm điện thoại, điện thoại vẫn luôn che mặt cô gái, tay có một số cử chỉ nhẹ nhàng đáng yêu, thêm một chút chuyển động chậm (slow motion) để tạo nét thanh lịch, tuyệt đối không thay đổi chi tiết trang phục.Người mẫu bước đi chậm rãi, vừa đi vừa phô diễn diện mạo của bộ trang phục đang mặc, không làm thay đổi chi tiết trang phục như trong ảnh mẫu.
+                A 1-year-old baby sitting close to father, softly turning head toward him and gently babbling as if talking, tiny lips moving naturally, calm eye contact, slight smile, one of father's shoulders partially visible and out of focus, no full face shown, warm natural daylight, handheld father POV, shallow depth of field, ultra realistic baby behavior, micro facial movements, 4K cinematic
 
-                Chuyển động camera làm nổi bật tỷ lệ của bộ trang phục trong khi vẫn giữ nguyên góc nhìn qua gương và giữ đúng chi tiết trang phục cô gái đang mặc. Tuyệt đối không được lỗi tay và không được lỗi chân. Lấy lại góc quay toàn cảnh gương mà không thêm bất kì chi tiết trang phục nào ngoài bức ảnh, tạo dáng tự nhiên trong khi cầm điện thoại, tay cầm điện thoại vẫn luôn che mặt cô gái, tay còn lại có một số cử chỉ như vuốt mái tóc, sau đó đưa tay ra trước bụng một cách thanh lịch, sau đó tay vuốt dọc để xuôi xuống ở tư thế bình thường, thêm một chút chuyển động chậm (slow motion) để tạo nét thanh lịch, tuyệt đối không thay đổi chi tiết trang phục. Tuyệt đối không làm thay đổi chi tiết trang phục như trong ảnh mẫu.
+                A 1-year-old baby looking away, then slowly turning back toward father's voice with a soft shy smile, eyes bright but calm, father only visible as a very small blurred cheek edge in extreme foreground, no full face visible, no mirrors, no reflections, no reflective surfaces, no glass reflections, clean matte background, natural indoor lighting, minimal environment, gentle handheld motion, shallow depth of field, ultra realistic baby behavior, micro facial movements, 4K
 
-                Chuyển động camera làm nổi bật tỷ lệ của bộ trang phục trong khi vẫn giữ nguyên góc nhìn qua gương và giữ đúng chi tiết trang phục cô gái đang mặc. Tuyệt đối không được lỗi tay và không được lỗi chân. Lấy lại góc quay toàn cảnh gương mà không thêm bất kì chi tiết trang phục nào ngoài bức ảnh, tạo dáng tự nhiên trong khi cầm điện thoại, tay cầm điện thoại vẫn luôn che mặt cô gái, đầu cô gái hơi nghiêng nhẹ rồi mỉm cười rồi sau đó cô đứng về tư thế bình thường ngay lập tức, một tay còn lại của cô gái để khoanh tay trước ngực một cách cá tính khoảng 1.5 giây, sau đó đưa tay chống vào hông, giữ nguyên tư thế này đến hết video, thêm một chút chuyển động chậm (slow motion) để tạo nét thanh lịch, tuyệt đối không thay đổi chi tiết trang phục. Tuyệt đối không làm thay đổi chi tiết trang phục như trong ảnh mẫu.
-
-                Chuyển động camera làm nổi bật tỷ lệ của bộ trang phục trong khi vẫn giữ nguyên góc nhìn qua gương và giữ đúng chi tiết trang phục cô gái đang mặc. Tuyệt đối không được lỗi tay và không được lỗi chân. Lấy lại góc quay toàn cảnh gương mà không thêm bất kì chi tiết trang phục nào ngoài bức ảnh, tạo dáng tự nhiên trong khi cầm điện thoại, điện thoại vẫn luôn che mặt cô gái, tay có một số cử chỉ nhẹ nhàng đáng yêu, thêm một chút chuyển động chậm (slow motion) để tạo nét thanh lịch, tuyệt đối không thay đổi chi tiết trang phục.Người mẫu bước đi chậm rãi, vừa đi vừa phô diễn diện mạo của bộ trang phục đang mặc, tuyệt đối chỉ xoay người một cách nhẹ nhàng, tự nhiên, không làm thay đổi chi tiết trang phục như trong ảnh mẫu.
+                A 1-year-old baby gently reaching out to touch father's face, tiny fingers softly touching nose area, father's face barely visible and blurred, only partial feature shown, baby focused and curious expression, slow delicate movement, warm light, cinematic close-up, 4K, natural interaction
                 `;
+    
+    const SELECTORS = {
+        promptBox: 'div.tiptap.ProseMirror[contenteditable="true"]',
+        placeholders: {
+            beforeUpload: "Gõ để tưởng tượng",
+            afterUpload: "Nhập để Imagine"
+        },
+        submitButton: 'button[type="submit"][aria-label="Gửi"]',
+        submitButtonEnabled: 'button[type="submit"][aria-label="Gửi"]:not([disabled])',
+        statusCreating: 'span.animate-pulse',
+        backButton: 'a[href="/imagine"]',
+        fileInput: 'input[type="file"]',
+        video: 'video[src*=".mp4"]'
+    };
+    
+    let IMAGE_QUEUE = [];
+    let cachedFileInput = null;
+    
+    // ===== UTILS =====
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+    
     function splitPromptList(promptText) {
         return promptText
             .split(/\n\s*\n/)
             .map(p => p.trim())
             .filter(Boolean);
     }
-
+    
     const PROMPT_LIST = splitPromptList(PROMPT);
-    const VIDEO_COUNT_PER_IMAGE = 4;
-
-    let IMAGE_QUEUE = [];
-    let CURRENT_IMAGE_INDEX = 0;
-
-    // ===== UTILS =====
-    const sleep = ms => new Promise(r => setTimeout(r, ms));
-
-    async function waitForPostPage(timeout = 5000) {
-        const start = Date.now();
-        while (Date.now() - start < timeout) {
-            if (location.href.includes("/imagine/post/")) return true;
-            await sleep(300);
-        }
-        return false;
-    }
-
+    const VIDEO_COUNT_PER_IMAGE = PROMPT_LIST.length; // Tự động dựa vào số lượng prompts
+    
     function getPromptForVideo(videoIndex) {
         if (PROMPT_LIST.length === 0) {
             throw "❌ Prompt list rỗng";
         }
-
+        
         if (videoIndex < PROMPT_LIST.length) {
             return PROMPT_LIST[videoIndex];
         }
-
-        // nếu vượt quá số prompt → dùng prompt cuối
+        
         return PROMPT_LIST[PROMPT_LIST.length - 1];
     }
-
-
-    async function waitForPromptBox(timeout = 20000) {
-        console.log("waitForPromptBox");
-        const start = Date.now();
-
-        while (Date.now() - start < timeout) {
-
-            const editors = document.querySelectorAll(
-                'div[contenteditable="true"].ProseMirror'
-            );
-
-            for (const el of editors) {
-                const placeholder = el.querySelector('[data-placeholder]');
-                if (
-                    placeholder &&
-                    placeholder.getAttribute("data-placeholder")?.includes("Gõ để tưởng tượng") &&
-                    el.offsetParent !== null
-                ) {
-                    console.log("Tìm thấy prompt box");
-                    return el;
-                }
-            }
-
-            await sleep(300);
+    
+    function isVisible(el) {
+        return el && el.offsetParent !== null;
+    }
+    
+    function isButtonEnabled(btn) {
+        return btn && !btn.hasAttribute('disabled') && isVisible(btn);
+    }
+    
+    function getFileInput() {
+        if (!cachedFileInput || !document.contains(cachedFileInput)) {
+            cachedFileInput = document.querySelector(SELECTORS.fileInput);
         }
-        console.log("Không tìm thấy prompt box");
-        return null;
+        return cachedFileInput;
     }
-
-    function setNativeValue(el, value) {
-        const setter = Object.getOwnPropertyDescriptor(
-            el.__proto__,
-            "value"
-        )?.set;
-        setter.call(el, value);
-    }
-
+    
     function humanClick(el) {
         if (!el) return;
         const rect = el.getBoundingClientRect();
         const x = rect.left + rect.width / 2;
         const y = rect.top + rect.height / 2;
-
+        
         ["pointerdown", "mousedown", "mouseup", "click"].forEach(type => {
             el.dispatchEvent(
                 new MouseEvent(type, {
@@ -133,167 +105,260 @@
             );
         });
     }
-
-    // ===== VIDEO ACTIONS =====
-    async function fillPrompt(promptText) {
-        const box = await waitForPromptBox();
-        if (!box) throw "Không tìm thấy prompt box";
-
-        box.focus();
-        await sleep(100);
-
-        // Xóa nội dung cũ
-        box.innerHTML = "<p></p>";
-        box.dispatchEvent(new Event("input", { bubbles: true }));
-        await sleep(100);
-
-        // Set nội dung mới
-        box.innerHTML = `<p>${promptText.replace(/\n/g, "<br>")}</p>`;
-        box.dispatchEvent(new Event("input", { bubbles: true }));
-
-        await sleep(100);
-    }
-
-    async function clickCreateVideo() {
-        const btn = document.querySelector(
-            'button[aria-label="Tạo video"], button[aria-label="Create video"]'
-        );
-        if (!btn || btn.offsetParent === null) {
-            throw "❌ Không tìm thấy nút Tạo video";
-        }
-        console.log("Click button Tạo video");
-        humanClick(btn);
-    }
-
-    async function clickUpscaleMenu(timeout = 20000) {
-        const start = Date.now();
-        while (Date.now() - start < timeout) {
-            const openMenu = document.querySelector(
-                'div[role="menu"][data-state="open"]'
-            );
-            if (!openMenu) {
-                await sleep(300);
-                continue;
+    
+    // ===== WAIT HELPERS =====
+    async function waitForElement(selector, options = {}) {
+        const { 
+            timeout = 10000, 
+            validator = null,
+            checkInterval = 100,
+            logName = selector
+        } = options;
+        
+        log(`⏳ Đang đợi: ${logName}`);
+        
+        return new Promise((resolve, reject) => {
+            const check = () => {
+                const el = document.querySelector(selector);
+                if (el && (!validator || validator(el))) {
+                    return el;
+                }
+                return null;
+            };
+            
+            const existing = check();
+            if (existing) {
+                log(`✅ Tìm thấy ngay: ${logName}`);
+                return resolve(existing);
             }
-
-            const items = [...openMenu.querySelectorAll('[role="menuitem"]')];
-            const upscale = items.find(el => {
-                const text = el.textContent?.trim();
-                if (text !== "Nâng cấp video") return false;
-                if (
-                    el.getAttribute("aria-disabled") === "true" ||
-                    el.classList.contains("opacity-50") ||
-                    el.classList.contains("pointer-events-none")
-                ) return false;
-                return true;
+            
+            let timeoutId, intervalId, observer;
+            
+            const cleanup = () => {
+                if (observer) observer.disconnect();
+                if (timeoutId) clearTimeout(timeoutId);
+                if (intervalId) clearInterval(intervalId);
+            };
+            
+            timeoutId = setTimeout(() => {
+                cleanup();
+                log(`❌ Timeout: ${logName}`);
+                reject(new Error(`Timeout: ${selector}`));
+            }, timeout);
+            
+            observer = new MutationObserver(() => {
+                const el = check();
+                if (el) {
+                    cleanup();
+                    log(`✅ Tìm thấy: ${logName}`);
+                    resolve(el);
+                }
             });
-
-            if (upscale) {
-                upscale.click();
-                return true;
+            
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true,
+                attributes: true,
+                attributeFilter: ['disabled', 'class', 'data-placeholder']
+            });
+            
+            intervalId = setInterval(() => {
+                const el = check();
+                if (el) {
+                    cleanup();
+                    log(`✅ Tìm thấy: ${logName}`);
+                    resolve(el);
+                }
+            }, checkInterval);
+        });
+    }
+    
+    async function waitForPromptBox(context = 'afterUpload', timeout = 20000) {
+        const expectedPlaceholder = SELECTORS.placeholders[context];
+        
+        return waitForElement(SELECTORS.promptBox, {
+            timeout,
+            logName: `Prompt box (${context})`,
+            validator: (el) => {
+                const p = el.querySelector('p[data-placeholder]');
+                const placeholder = p?.getAttribute('data-placeholder');
+                return placeholder?.includes(expectedPlaceholder) && isVisible(el);
             }
-            await sleep(300);
-        }
-        return false;
+        });
     }
-
-    async function waitTaskReady(timeout = 120000) {
-        const start = Date.now();
-
-        while (Date.now() - start < timeout) {
-
-            // 1️⃣ Nếu còn trạng thái "Đang tạo" → tiếp tục chờ
-            const creating = [...document.querySelectorAll("span")]
-                .find(el => el.textContent?.trim() === "Đang tạo");
-
-            if (creating) {
-                await sleep(800);
-                continue;
-            }
-
-            // 2️⃣ Khi không còn "Đang tạo" → tìm nút More
-            const moreBtn = document.querySelector(
-                'button[aria-label="Tùy chọn khác"], button[aria-label="More"]'
-            );
-
-            if (
-                moreBtn &&
-                moreBtn.offsetParent !== null &&
-                !moreBtn.closest(".pointer-events-none")
-            ) {
-                return moreBtn;
-            }
-
-            await sleep(400);
-        }
-
-        throw "⏰ Timeout: video chưa ready";
+    
+    async function waitForSubmitEnabled(timeout = 10000) {
+        return waitForElement(SELECTORS.submitButtonEnabled, {
+            timeout,
+            logName: 'Nút Gửi enabled',
+            validator: isButtonEnabled
+        });
     }
-
-    async function waitUpscaleFinishedByHD(timeout = 180000) {
-        const start = Date.now();
-        while (Date.now() - start < timeout) {
-            const hd = [...document.querySelectorAll("div")]
-                .find(el => el.textContent.trim() === "HD");
-            if (hd) return true;
-            await sleep(1500);
-        }
-        throw "⏰ Upscale chưa xong";
+    
+    async function waitForVideoReady(timeout = 120000) {
+        log('⏳ Đang đợi video được tạo...');
+        
+        return new Promise((resolve, reject) => {
+            let timeoutId, intervalId, observer;
+            let lastStatus = null;
+            
+            const cleanup = () => {
+                if (observer) observer.disconnect();
+                if (timeoutId) clearTimeout(timeoutId);
+                if (intervalId) clearInterval(intervalId);
+            };
+            
+            timeoutId = setTimeout(() => {
+                cleanup();
+                log('❌ Timeout: video chưa ready sau 120s');
+                reject(new Error("⏰ Timeout: video chưa ready"));
+            }, timeout);
+            
+            const checkReady = () => {
+                const creating = document.querySelector(SELECTORS.statusCreating);
+                const isCreating = creating?.textContent?.trim() === "Đang tạo";
+                
+                if (isCreating && lastStatus !== 'creating') {
+                    log('🎬 Đang tạo video...');
+                    lastStatus = 'creating';
+                }
+                
+                if (isCreating) {
+                    return false;
+                }
+                
+                const video = document.querySelector(SELECTORS.video);
+                if (video?.src) {
+                    cleanup();
+                    log('✅ Video đã sẵn sàng');
+                    resolve(video);
+                    return true;
+                }
+                return false;
+            };
+            
+            if (checkReady()) return;
+            
+            observer = new MutationObserver(checkReady);
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true,
+                characterData: true
+            });
+            
+            intervalId = setInterval(checkReady, 500);
+        });
     }
-
-    function isVideoAlreadyHD() {
-        return [...document.querySelectorAll("div")]
-            .some(el => el.textContent?.trim() === "HD");
-    }
-
-    // ===== IMAGE FLOW =====
+    
+    // ===== ACTIONS =====
     async function uploadSingleImage(file) {
-        const input = document.querySelector('input[type="file"]');
-        if (!input) throw "Không tìm thấy input upload";
-
+        log('📤 Đang upload ảnh...', file.name);
+        const input = getFileInput();
+        if (!input) {
+            log('❌ Không tìm thấy input upload');
+            throw "Không tìm thấy input upload";
+        }
+        
         const dt = new DataTransfer();
         dt.items.add(file);
         input.files = dt.files;
         input.dispatchEvent(new Event("change", { bubbles: true }));
+        log('✅ Upload thành công');
     }
-
-    function getCurrentVideoUrl() {
-
-        // 1️⃣ Ưu tiên đúng video HD
-        const hdVideo = document.querySelector('video#hd-video[src]');
-
-        if (hdVideo && hdVideo.src && hdVideo.src.includes("_hd.mp4")) {
-            return hdVideo.src.split("?")[0]; // bỏ query cache
+    
+    async function fillPrompt(promptBox, promptText) {
+        log('✍️ Đang điền prompt...');
+        promptBox.focus();
+        await sleep(50);
+        
+        promptBox.innerHTML = "<p></p>";
+        promptBox.dispatchEvent(new Event("input", { bubbles: true }));
+        await sleep(50);
+        
+        promptBox.innerHTML = `<p>${promptText.replace(/\n/g, "<br>")}</p>`;
+        promptBox.dispatchEvent(new Event("input", { bubbles: true }));
+        await sleep(100); // Tăng từ 50ms lên 100ms để đảm bảo DOM update
+        log('✅ Đã điền prompt');
+    }
+    
+    async function validatePromptFilled(promptBox, expectedText, maxRetries = 3) {
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            log(`⏳ Đang validate prompt (lần thử ${attempt}/${maxRetries})...`);
+            
+            await sleep(100); // Đợi DOM update
+            
+            // 1. Kiểm tra DOM state
+            if (promptBox.getAttribute('contenteditable') !== 'true') {
+                log('❌ Validate fail: promptBox không editable');
+                if (attempt < maxRetries) {
+                    log('🔄 Thử điền lại prompt...');
+                    await fillPrompt(promptBox, expectedText);
+                    continue;
+                }
+                throw new Error('Prompt box không editable sau ' + maxRetries + ' lần thử');
+            }
+            
+            // 2. Kiểm tra nội dung không rỗng
+            const content = promptBox.textContent.trim();
+            if (content.length === 0) {
+                log('❌ Validate fail: Prompt rỗng');
+                if (attempt < maxRetries) {
+                    log('🔄 Thử điền lại prompt...');
+                    await fillPrompt(promptBox, expectedText);
+                    continue;
+                }
+                throw new Error('Prompt vẫn rỗng sau ' + maxRetries + ' lần thử');
+            }
+            
+            // 3. Kiểm tra độ dài tối thiểu
+            if (content.length < 10) {
+                log(`❌ Validate fail: Prompt quá ngắn (${content.length} ký tự)`);
+                if (attempt < maxRetries) {
+                    log('🔄 Thử điền lại prompt...');
+                    await fillPrompt(promptBox, expectedText);
+                    continue;
+                }
+                throw new Error('Prompt quá ngắn sau ' + maxRetries + ' lần thử');
+            }
+            
+            // Success
+            log('✅ Prompt đã được validate');
+            return true;
         }
-
-        // 2️⃣ Fallback: tìm bất kỳ video nào có _hd.mp4
-        const fallback = [...document.querySelectorAll("video[src]")]
-            .find(v => v.src.includes("_hd.mp4"));
-
-        if (fallback) {
-            return fallback.src.split("?")[0];
+    }
+    
+    async function clickSubmit() {
+        const btn = await waitForSubmitEnabled();
+        log('🖱️ Click nút Gửi');
+        humanClick(btn);
+    }
+    
+    async function clickBack() {
+        log('🔙 Click nút Quay lại');
+        const link = document.querySelector(SELECTORS.backButton);
+        if (!link) {
+            log('❌ Không tìm thấy nút Quay lại');
+            throw "Không tìm thấy nút Quay lại";
         }
-
-        return null;
+        humanClick(link);
+        log('✅ Đã quay lại trang upload');
     }
-
-    function downloadVideo(url, filename) {
-        return new Promise((resolve, reject) => {
-            GM_download({
-                url,
-                name: filename,
-                saveAs: false,
-                onload: resolve,
-                onerror: reject
-            });
-        });
+    
+    // ===== LOGGING =====
+    function log(message, data = null) {
+        const timestamp = new Date().toISOString().split('T')[1].slice(0, -1);
+        if (data) {
+            console.log(`[${timestamp}] ${message}`, data);
+        } else {
+            console.log(`[${timestamp}] ${message}`);
+        }
     }
-
+    
     async function selectMultipleImages() {
         return new Promise(resolve => {
-            const input = document.querySelector('input[type="file"]');
+            const input = getFileInput();
             if (!input) return resolve([]);
-
+            
             input.setAttribute("multiple", "multiple");
             input.addEventListener(
                 "change",
@@ -303,155 +368,112 @@
             input.click();
         });
     }
-
-    // ===== NEW GROK UI FLOW =====
-    async function openSettingMenu(timeout = 15000) {
-        const start = Date.now();
-        while (Date.now() - start < timeout) {
-            const btn = document.querySelector('button[aria-label="Cài đặt"]');
-            if (btn && btn.offsetParent !== null) {
-                humanClick(btn);
-                await sleep(500);
-                return true;
-            }
-            await sleep(300);
-        }
-        throw "❌ Không tìm thấy nút Cài đặt";
-    }
-
-    async function waitForMenuOpen(timeout = 10000) {
-        const start = Date.now();
-        while (Date.now() - start < timeout) {
-            const menu = document.querySelector('div[role="menu"][data-state="open"]');
-            if (menu) return menu;
-            await sleep(300);
-        }
-        throw "❌ Menu không mở";
-    }
-
-    async function selectAspect916(menu) {
-        console.log("selectAspect916");
-        const btn = menu.querySelector('button[aria-label="9:16"]');
-        if (!btn) throw "❌ Không tìm thấy nút 9:16";
-        humanClick(btn);
-        await sleep(300);
-    }
-
-    async function clickCreateVideoInMenu(menu) {
-        console.log("clickCreateVideoInMenu");
-        const create = [...menu.querySelectorAll('[role="menuitem"]')]
-            .find(item =>
-                item.querySelector('span') &&
-                item.querySelector('span').textContent.trim().includes("Tạo video")
-            );
-
-        if (!create) throw "❌ Không tìm thấy menu Tạo video";
-        humanClick(create);
-        await sleep(800);
-    }
-
-    async function triggerCreateVideoFromImage() {
-        await openSettingMenu();
-        const menu = await waitForMenuOpen();
-        await selectAspect916(menu);
-        await clickCreateVideoInMenu(menu);
-    }
-
-    async function goBackToUpload() {
-        const logo = document.querySelector('a[href="/imagine"]');
-        if (!logo) throw "Không tìm thấy nút Imagine";
-        humanClick(logo);
-        await sleep(1000);
-    }
-
+    
+    // ===== MAIN FLOW =====
     async function processOneImage(file) {
-        console.log("🖼 Xử lý ảnh:", file.name);
-
+        log('═══════════════════════════════════════');
+        log(`🖼️ BẮT ĐẦU XỬ LÝ ẢNH: ${file.name}`);
+        log('═══════════════════════════════════════');
+        
         for (let i = 0; i < VIDEO_COUNT_PER_IMAGE; i++) {
-            console.log(`🎬 Video ${i + 1}/${VIDEO_COUNT_PER_IMAGE} cho ảnh ${file.name}`);
-
+            log('');
+            log(`━━━ Video ${i + 1}/${VIDEO_COUNT_PER_IMAGE} ━━━`);
+            
             const promptNow = getPromptForVideo(i);
-            console.log("📝 Prompt:", promptNow);
-
-            // 1️⃣ upload ảnh
-            let uploaded = false;
-
-            for (let retry = 1; retry <= 3; retry++) {
-                console.log(`🔁 Upload thử lần ${retry}:`, file.name);
-
+            const startTime = Date.now();
+            
+            try {
+                // BƯỚC 1: Upload ảnh
+                log(`[Bước 1/5] Upload ảnh`);
                 await uploadSingleImage(file);
-
-                if (await waitForPostPage(5000)) {
-                    uploaded = true;
-                    console.log("✅ Upload OK");
-                    break;
+                await sleep(500);
+                
+                // BƯỚC 2: Đợi prompt box xuất hiện
+                log(`[Bước 2/5] Đợi prompt box`);
+                const promptBox = await waitForPromptBox('afterUpload', 10000);
+                
+                // BƯỚC 3: Điền prompt
+                log(`[Bước 3/6] Điền prompt`);
+                await fillPrompt(promptBox, promptNow);
+                
+                // BƯỚC 4: Validate prompt
+                log(`[Bước 4/6] Validate prompt`);
+                await validatePromptFilled(promptBox, promptNow, 3);
+                
+                // BƯỚC 5: Đợi nút enabled và click submit
+                log(`[Bước 5/6] Click nút Gửi`);
+                await clickSubmit();
+                
+                // BƯỚC 6: Đợi video xong
+                log(`[Bước 6/6] Đợi video hoàn thành`);
+                await waitForVideoReady();
+                
+                const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+                log(`✅ HOÀN THÀNH video ${i + 1} trong ${elapsed}s`);
+                
+                // Chờ 2s trước khi quay lại
+                await sleep(2000);
+                
+                // Quay lại
+                await clickBack();
+                await sleep(500);
+                
+            } catch (e) {
+                log(`❌ LỖI video ${i + 1}: ${e.message || e}`);
+                console.error('Chi tiết lỗi:', e);
+                
+                try {
+                    log('🔄 Thử quay lại trang upload...');
+                    await clickBack();
+                    await sleep(1000);
+                } catch (_) {
+                    log('⚠️ Không quay lại được, reload page...');
+                    location.href = '/imagine';
+                    await sleep(2000);
                 }
-
-                console.warn("⚠ Không vào được post page, thử lại...");
-                await goBackToUpload();
-                await sleep(1500);
             }
-
-            if (!uploaded) {
-                throw "❌ Upload thất bại sau 3 lần";
-            }
-
-            await sleep(2000);
-            await triggerCreateVideoFromImage();
-
-            // 3️⃣ fill prompt
-            await fillPrompt(promptNow);
-
-            // 4️⃣ tạo video
-            await clickCreateVideo();
-
-            // 5️⃣ đợi video xong
-            await sleep(2000);
-            const moreBtn = await waitTaskReady();
-
-            // 6️⃣ upscale nếu cần
-            if (!isVideoAlreadyHD()) {
-                humanClick(moreBtn);
-                await sleep(800);
-                if (await clickUpscaleMenu()) {
-                    await waitUpscaleFinishedByHD();
-                }
-            }
-
-            // 7️⃣ download
-            const videoUrl = getCurrentVideoUrl();
-            console.log("📝 URL:", videoUrl);
-            if (videoUrl) {
-                const filename =
-                    file.name.replace(/\.[^/.]+$/, `_${i + 1}.mp4`);
-                await downloadVideo(videoUrl, filename);
-            }
-
-            // 8️⃣ quay về upload để làm video tiếp
-            await goBackToUpload();
-            await sleep(1000);
         }
+        
+        log('');
+        log(`✅ HOÀN THÀNH TẤT CẢ ${VIDEO_COUNT_PER_IMAGE} VIDEO CHO: ${file.name}`);
     }
-
-
-    // ===== MAIN =====
+    
     async function run() {
+        log('🚀 BẮT ĐẦU CHƯƠNG TRÌNH');
+        
         IMAGE_QUEUE = await selectMultipleImages();
-        if (!IMAGE_QUEUE.length) return alert("❌ Không có ảnh");
-
+        if (!IMAGE_QUEUE.length) {
+            log('❌ Không có ảnh được chọn');
+            return alert("❌ Không có ảnh");
+        }
+        
+        log(`📋 Đã chọn ${IMAGE_QUEUE.length} ảnh`);
+        log(`📊 Tổng cộng sẽ tạo ${IMAGE_QUEUE.length * VIDEO_COUNT_PER_IMAGE} videos`);
+        
+        const totalStartTime = Date.now();
+        
         for (let i = 0; i < IMAGE_QUEUE.length; i++) {
-            CURRENT_IMAGE_INDEX = i;
+            log('');
+            log(`📸 Ảnh ${i + 1}/${IMAGE_QUEUE.length}`);
             try {
                 await processOneImage(IMAGE_QUEUE[i]);
             } catch (e) {
-                console.error("❌ Lỗi ảnh:", e);
+                log(`❌ LỖI NGHIÊM TRỌNG khi xử lý ảnh ${i + 1}: ${e.message || e}`);
+                console.error("Chi tiết lỗi:", e);
             }
         }
-
-        alert("🎉 DONE");
+        
+        const totalElapsed = ((Date.now() - totalStartTime) / 1000 / 60).toFixed(1);
+        log('');
+        log('═══════════════════════════════════════');
+        log(`🎉 HOÀN THÀNH TẤT CẢ!`);
+        log(`⏱️ Tổng thời gian: ${totalElapsed} phút`);
+        log('═══════════════════════════════════════');
+        
+        alert(`🎉 DONE!\nĐã xử lý ${IMAGE_QUEUE.length} ảnh trong ${totalElapsed} phút`);
     }
-
-    // ===== UI BUTTON =====
+    
+    // ===== UI =====
     const btn = document.createElement("button");
     btn.textContent = "▶ Start";
     Object.assign(btn.style, {
@@ -470,7 +492,3 @@
     document.body.appendChild(btn);
 
 })();
-
-
-
-
